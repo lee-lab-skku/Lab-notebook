@@ -1020,10 +1020,12 @@ async function _loadCachedWeekly(week) {
 async function generateWeeklyReport(week, force = false) {
   const genBtn = document.getElementById('weekly-gen-btn');
   const regenBtn = document.getElementById('weekly-regen-btn');
-  if (genBtn?.disabled || regenBtn?.disabled) return;
+  // 재생성 중일 때만 막기 (force면 genBtn disabled 무시)
+  if (!force && genBtn?.disabled) return;
+  if (regenBtn?.disabled) return;
   // 둘 다 비활성화
   [genBtn, regenBtn].forEach(b => { if (b) { b.disabled = true; b.style.opacity = '0.4'; } });
-  if (genBtn) genBtn.innerHTML = `<span class="loading"><span class="spinner"></span>${force ? '재생성중' : '생성중'}...</span>`;
+  if (regenBtn) regenBtn.innerHTML = `<span class="loading"><span class="spinner"></span>${force ? '재생성중' : '생성중'}...</span>`;
 
   try {
     const res = await fetch('/api/ai/weekly', {
