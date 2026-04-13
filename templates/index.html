@@ -966,8 +966,8 @@ function renderWeeklyView() {
   const weekEntries = allEntries.filter(e => e.week === selectedWeek);
   headerActions.innerHTML = `
     <div class="flex gap-8" style="align-items:center;">
-      <button class="btn btn-secondary btn-sm" onclick="generateWeeklyReport('${selectedWeek}', false)" id="weekly-gen-btn">✦ AI 리포트</button>
-      <button class="btn btn-ghost btn-sm" onclick="generateWeeklyReport('${selectedWeek}', true)" id="weekly-regen-btn" style="color:var(--text-dim);font-size:12px;">↺ 재생성</button>
+      <button class="btn btn-secondary btn-sm" id="weekly-gen-btn" onclick="generateWeeklyReport('${selectedWeek}', false)">✦ AI 리포트 생성</button>
+      <button class="btn btn-ghost btn-sm hidden" id="weekly-regen-btn" onclick="generateWeeklyReport('${selectedWeek}', true)" style="color:var(--text-dim);font-size:12px;">↺ 재생성</button>
     </div>`;
 
   if (!weekEntries.length) {
@@ -1006,7 +1006,11 @@ async function _loadCachedWeekly(week) {
     if (!data.error && data.week_summary) {
       renderWeeklyReport(data);
       const genBtn = document.getElementById('weekly-gen-btn');
-      if (genBtn) genBtn.innerHTML = '✦ 리포트 있음';
+      if (genBtn) {
+        genBtn.innerHTML = '✦ 리포트 있음';
+        genBtn.disabled = true;
+        genBtn.style.cssText = 'background:var(--accent);color:#0d0d0f;opacity:1;cursor:default;';
+      }
     }
   } catch(e) { }
 }
@@ -1028,12 +1032,16 @@ async function generateWeeklyReport(week, force = false) {
     const data = await res.json();
     if (data.error) { toast(data.error, 'error'); return; }
     renderWeeklyReport(data);
-    if (genBtn) { genBtn.disabled = false; genBtn.style.opacity = '1'; genBtn.innerHTML = '✦ AI 리포트'; }
+    if (genBtn) {
+      genBtn.disabled = true;
+      genBtn.style.cssText = 'background:var(--accent);color:#0d0d0f;opacity:1;cursor:default;';
+      genBtn.innerHTML = '✦ 리포트 있음';
+    }
     if (regenBtn) { regenBtn.disabled = false; regenBtn.style.opacity = '1'; }
     toast(force ? '리포트 재생성 완료!' : '리포트 생성 완료!', 'success');
   } catch(e) {
     toast('생성 실패: ' + e.message, 'error');
-    if (genBtn) { genBtn.disabled = false; genBtn.style.opacity = '1'; genBtn.innerHTML = '✦ AI 리포트'; }
+    if (genBtn) { genBtn.disabled = false; genBtn.style.opacity = '1'; genBtn.innerHTML = '✦ AI 리포트 생성'; }
     if (regenBtn) { regenBtn.disabled = false; regenBtn.style.opacity = '1'; }
   }
 }
