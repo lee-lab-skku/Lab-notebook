@@ -965,8 +965,10 @@ function renderWeeklyView() {
 
   const weekEntries = allEntries.filter(e => e.week === selectedWeek);
   headerActions.innerHTML = `
-    <span id="weekly-status-btn" style="font-family:var(--mono);font-size:11px;color:var(--text-dim);padding:7px 12px;">✦ AI 리포트 없음</span>
-    <button class="btn btn-primary btn-sm" id="weekly-regen-btn" onclick="generateWeeklyReport('${selectedWeek}', true)" style="margin-left:4px;">↺ 재생성</button>`;
+    <div class="flex gap-8" style="align-items:center;">
+      <button class="btn btn-secondary btn-sm" onclick="generateWeeklyReport('${selectedWeek}', false)" id="weekly-gen-btn">✦ AI 리포트</button>
+      <button class="btn btn-ghost btn-sm" onclick="generateWeeklyReport('${selectedWeek}', true)" id="weekly-regen-btn" style="color:var(--text-dim);font-size:12px;">↺ 재생성</button>
+    </div>`;
 
   if (!weekEntries.length) {
     el.innerHTML = `
@@ -1010,11 +1012,12 @@ async function _loadCachedWeekly(week) {
 }
 
 async function generateWeeklyReport(week, force = false) {
+  const genBtn = document.getElementById('weekly-gen-btn');
   const regenBtn = document.getElementById('weekly-regen-btn');
-  const statusBtn = document.getElementById('weekly-status-btn');
-  if (regenBtn?.disabled) return;
-  if (regenBtn) { regenBtn.disabled = true; regenBtn.innerHTML = `<span class="loading"><span class="spinner"></span>생성중...</span>`; }
-  if (statusBtn) statusBtn.textContent = '생성 중...';
+  if (genBtn?.disabled || regenBtn?.disabled) return;
+  // 둘 다 비활성화
+  [genBtn, regenBtn].forEach(b => { if (b) { b.disabled = true; b.style.opacity = '0.4'; } });
+  if (genBtn) genBtn.innerHTML = `<span class="loading"><span class="spinner"></span>${force ? '재생성중' : '생성중'}...</span>`;
 
   try {
     const res = await fetch('/api/ai/weekly', {
@@ -1025,13 +1028,13 @@ async function generateWeeklyReport(week, force = false) {
     const data = await res.json();
     if (data.error) { toast(data.error, 'error'); return; }
     renderWeeklyReport(data);
-    if (regenBtn) { regenBtn.disabled = false; regenBtn.innerHTML = '↺ 재생성'; }
-    if (statusBtn) statusBtn.textContent = `✦ AI 리포트 생성됨`;
+    if (genBtn) { genBtn.disabled = false; genBtn.style.opacity = '1'; genBtn.innerHTML = '✦ AI 리포트'; }
+    if (regenBtn) { regenBtn.disabled = false; regenBtn.style.opacity = '1'; }
     toast(force ? '리포트 재생성 완료!' : '리포트 생성 완료!', 'success');
   } catch(e) {
     toast('생성 실패: ' + e.message, 'error');
-    if (regenBtn) { regenBtn.disabled = false; regenBtn.innerHTML = '↺ 재생성'; }
-    if (statusBtn) statusBtn.textContent = '✦ AI 리포트 없음';
+    if (genBtn) { genBtn.disabled = false; genBtn.style.opacity = '1'; genBtn.innerHTML = '✦ AI 리포트'; }
+    if (regenBtn) { regenBtn.disabled = false; regenBtn.style.opacity = '1'; }
   }
 }
 

@@ -103,7 +103,7 @@
   {
     "id": "cd28d6e2-2123-4927-8879-7d3243a785c4",
     "title": "연구노트 웹앱 개발 (Lab Notebook v1.0)",
-    "memo": "Flask + Ollama + Gemma4:31b 기반 로컬 실험 노트 앱 전체 개발.\n\n[구현 기능]\n- 실험 기록 CRUD (제목/메모/태그/날짜 지정)\n- 사진 드래그앤드롭 + Ctrl+V 클립보드 업로드\n- 이미지 호버 확대 + 클릭 라이트박스\n- Ollama Gemma4:31b AI 분석 (이미지 multimodal)\n  - 제목/태그 자동 생성, 요약/발견사항/다음스텝\n- Weekly 리포트 (캐시 저장, 달성률, Side Quest 분류)\n- 기록 수정/삭제, AI 재분석\n\n[기술 스택]\n- Flask + Vanilla JS, Ollama OpenAI-compatible API\n- RTX A6000 48GB (GT 1030 비활성화, ~30 t/s)\n- FLASH_ATTENTION=1, KV_CACHE_TYPE=q8_0\n\n[트러블슈팅]\n- Gemma4 Thinking 모드 속도 저하 → 26b/31b 비교 후 31b 선택\n- GT 1030 CPU 오프로딩 → 장치 비활성화로 해결\n- Ollama multimodal 형식 오류 → base64 직접 전달\n- JSON 잘림 → max_tokens 4096 상향",
+    "memo": "Flask + Ollama + Gemma4:31b 기반 로컬 실험 노트 앱 전체 개발.\n\n[구현 기능]\n- 실험 기록 CRUD (제목/메모/태그/날짜 지정)\n- 사진 드래그앤드롭 + Ctrl+V 클립보드 업로드\n- 이미지 호버 확대 + 클릭 라이트박스\n- Ollama Gemma4:31b AI 분석 (이미지 multimodal)\n  - 제목/태그 자동 생성, 요약/발견사항/다음스텝\n- Weekly 리포트 (캐시 저장, 달성률, Side Quest 분류)\n- 기록 수정/삭제, AI 재분석\n\n[기술 스택]\n- Flask + Vanilla JS, Ollama OpenAI-compatible API\n- RTX A6000 48GB (GT 1030 비활성화, ~30 t/s)\n- FLASH_ATTENTION=1, KV_CACHE_TYPE=q8_0\n\n[트러블슈팅]\n- Gemma4 Thinking 모드 속도 저하 → 26b/31b 비교 후 31b 선택\n- GT 1030 CPU 오프로딩 → 장치 비활성화로 해결\n- Ollama multimodal 형식 오류 → base64 직접 전달\n- JSON 잘림 → max_tokens 4096 상향\n\n[버전 관리]\n- Git 초기화 및 GitHub 연동 완료\n- Repository: https://github.com/ClaKim-SKKU/Lab-notebook\n- v1.0 초기 커밋 (app.py, templates, data 포함)\n- 앞으로 기능 추가/수정 시 commit + push로 버전 관리",
     "tags": [
       "코딩",
       "Flask",
@@ -114,10 +114,11 @@
       "Lab_Notebook",
       "AI_Automation",
       "Local_LLM",
-      "Multimodal"
+      "Multimodal",
+      "LabNotebook"
     ],
     "images": [],
-    "ai_summary": "{\"key_findings\":[\"RTX A6000(48GB) 환경에서 Gemma4:31b 모델의 최적 성능(~30 t/s) 및 Flash Attention/KV Cache 설정을 통한 추론 속도 확보\",\"Base64 직접 전달 방식의 이미지 데이터 처리와 max_tokens 상향(4096)을 통해 멀티모달 분석 및 JSON 출력의 안정성 해결\",\"GT 1030 장치 비활성화를 통해 CPU 오프로딩으로 인한 속도 저하 문제 해결\"],\"next_steps\":\"구축된 AI 실험 노트 시스템을 실제 YBCO 세라믹 슬러리 DLP 프린팅 실험(경화 깊이 분석, 적층 불량 이미지 진단 등)에 적용하여 도메인 특화 분석 성능 검증\",\"suggested_tags\":[\"Lab_Notebook\",\"AI_Automation\",\"Gemma4\",\"Flask\",\"Local_LLM\",\"Multimodal\"],\"summary\":\"Flask와 Ollama(Gemma4:31b) 기반의 로컬 AI 실험 노트 시스템을 개발하여 실험 기록의 효율적인 관리 및 멀티모달 분석 환경을 구축함. 하드웨어 최적화 및 API 트러블슈팅을 통해 실시간 AI 분석 및 리포트 생성 기능을 구현함.\",\"title\":\"연구노트 웹앱 개발 (Lab Notebook v1.0)\"}",
+    "ai_summary": "{\"key_findings\":[\"Gemma4 31b 모델이 26b 대비 적합하며, GT 1030 장치 비활성화를 통해 CPU 오프로딩 문제를 해결하여 추론 속도를 최적화함\",\"Ollama 멀티모달 입력 시 base64 직접 전달 방식과 max_tokens 상향 조정을 통해 이미지 분석 및 JSON 출력의 안정성을 확보함\",\"이미지 드래그앤드롭 및 클립보드 업로드, 라이트박스 기능을 구현하여 실험 데이터 입력의 편의성을 높임\"],\"next_steps\":\"개발된 웹앱을 실제 YBCO 세라믹 슬러리 DLP 프린팅 실험 데이터 분석에 적용하고, 노광시간/경화깊이 등 주요 변수 추적 기능을 고도화할 것\",\"suggested_tags\":[\"LabNotebook\",\"AI_Automation\",\"Ollama\",\"Flask\",\"Gemma4\",\"Multimodal\"],\"summary\":\"Flask와 Ollama(Gemma4:31b)를 활용하여 실험 기록 CRUD 및 AI 멀티모달 분석 기능이 포함된 로컬 실험 노트 애플리케이션을 개발함. RTX A6000 환경에서 하드웨어 최적화 및 API 통신 에러를 해결하여 v1.0 버전을 구축하고 GitHub에 저장소를 생성함.\",\"title\":\"연구노트 웹앱 개발 (Lab Notebook v1.0)\"}",
     "created_at": "2026-04-13T23:59:00",
     "date": "2026-04-13",
     "week": "2026-W16"
