@@ -1005,8 +1005,8 @@ async function _loadCachedWeekly(week) {
     const data = await res.json();
     if (!data.error && data.week_summary) {
       renderWeeklyReport(data);
-      const statusBtn = document.getElementById('weekly-status-btn');
-      if (statusBtn) statusBtn.textContent = `✦ AI 리포트 생성됨`;
+      const genBtn = document.getElementById('weekly-gen-btn');
+      if (genBtn) genBtn.innerHTML = '✦ 리포트 있음';
     }
   } catch(e) { }
 }
