@@ -9,6 +9,7 @@ import json
 import uuid
 import base64
 import shutil
+import requests
 from datetime import datetime, timedelta
 from pathlib import Path
 from flask import Flask, request, jsonify, send_from_directory, send_file
@@ -368,3 +369,150 @@ def get_weeks():
 if __name__ == '__main__':
     print("🔬 Lab Notebook 시작 → http://localhost:5001")
     app.run(debug=True, port=5001)
+
+# ── Web Search (SearXNG) ─────────────────────────────────────────────────────
+
+SEARXNG_URL = os.getenv('SEARXNG_URL', 'http://localhost:8888')
+
+def searxng_search(query, categories='general', num=5):
+    """SearXNG로 웹 검색."""
+    try:
+        r = requests.get(
+            f"{SEARXNG_URL}/search",
+            params={
+                'q': query,
+                'format': 'json',
+                'categories': categories,
+                'language': 'en',
+            },
+            timeout=10
+        )
+        data = r.json()
+        results = []
+        for item in data.get('results', [])[:num]:
+            results.append({
+                'title': item.get('title', ''),
+                'url': item.get('url', ''),
+                'snippet': item.get('content', ''),
+                'source': item.get('engine', ''),
+            })
+        return results
+    except Exception as e:
+        return [{'error': str(e)}]
+
+
+@app.route('/api/search', methods=['POST'])
+def web_search():
+    """웹 검색 엔드포인트."""
+    data = request.json
+    query = data.get('query', '')
+    categories = data.get('categories', 'general')
+    num = data.get('num', 5)
+
+    if not query:
+        return jsonify({'error': 'query required'}), 400
+
+    results = searxng_search(query, categories, num)
+    return jsonify({'query': query, 'results': results})
+
+
+# ── Chat with AI + Auto Web Search ───────────────────────────────────────────
+
+CHAT_SYSTEM_PROMPT = """당신은 고려대학교/성균관대학교 박사후연구원(DLP/볼류메트릭 3D 프린팅 전공)의 AI 연구 어시스턴트입니다.
+
+[연구자 프로필]
+- 전공: DLP/볼류메트릭 3D 프린팅, 라디칼/양이온 하이브리드 광중합, YBCO 세라믹 프린팅
+- 주요 관심: 노광시간, 경화깊이, 오버큐어링, FEP 필름, 슬러리 점도, 소결 조건
+
+[대화 스타일]
+- 한국어로 자연스럽게 대화
+- 전문 용어는 영문 병기 허용
+- 질문에 따라 웹 검색 결과를 활용하여 최신 정보 제공
+- 실험 관련 질문은 구체적인 수치와 조건 포함
+
+웹 검색 결과가 제공되면 해당 내용을 참고하여 답변하되, 출처를 명시해줘."""
+
+
+@app.route('/api/chat', methods=['POST'])
+def ai_chat():
+    """AI 채팅 + 자동 웹 검색."""
+    import requests as req
+    import time
+
+    data = request.json
+    message = data.get('message', '')
+    history = data.get('history', [])
+    use_search = data.get('use_search', True)
+
+    if not message:
+        return jsonify({'error': 'message required'}), 400
+
+    search_results = []
+    search_query = None
+
+    # 웹 검색 필요 여부 판단 + 실행
+    if use_search:
+        # 검색 필요 키워드 감지
+        search_triggers = [
+            '논문', '연구', '최신', '찾아', '검색', '어떻게', '방법', '왜', '원인',
+            'paper', 'research', 'study', 'how', 'why', 'method',
+            'DLP', 'YBCO', '프린팅', '소결', '경화', '슬러리', '광중합',
+        ]
+        needs_search = any(t in message for t in search_triggers)
+
+        if needs_search:
+            # 검색 쿼리 생성 (LLM 사용)
+            try:
+                query_resp = client.chat.completions.create(
+                    model=OLLAMA_MODEL,
+                    messages=[{
+                        'role': 'user',
+                        'content': f"다음 질문에 대한 웹 검색 쿼리를 영어로 1줄만 만들어줘. 다른 말 없이 쿼리만:\n{message}"
+                    }],
+                    max_tokens=50,
+                )
+                search_query = query_resp.choices[0].message.content.strip().strip('"\'')
+            except:
+                search_query = message[:100]
+
+            search_results = searxng_search(search_query, num=5)
+            print(f"[CHAT] 웹 검색: {search_query} → {len(search_results)}개 결과")
+
+    # 메시지 구성
+    messages = [{'role': 'system', 'content': CHAT_SYSTEM_PROMPT}]
+
+    # 대화 히스토리
+    for h in history[-10:]:  # 최근 10개만
+        messages.append({'role': h['role'], 'content': h['content']})
+
+    # 검색 결과 포함
+    user_content = message
+    if search_results and not any('error' in r for r in search_results):
+        search_text = "\n\n[웹 검색 결과]\n"
+        for i, r in enumerate(search_results, 1):
+            search_text += f"{i}. {r['title']}\n   {r['snippet'][:200]}\n   출처: {r['url']}\n\n"
+        user_content = message + search_text
+
+    messages.append({'role': 'user', 'content': user_content})
+
+    t0 = time.time()
+    try:
+        resp = client.chat.completions.create(
+            model=OLLAMA_MODEL,
+            messages=messages,
+            max_tokens=4096,
+        )
+        elapsed = time.time() - t0
+        answer = resp.choices[0].message.content.strip()
+        print(f"[CHAT] 완료 {elapsed:.1f}s | {len(answer)}자")
+
+        return jsonify({
+            'answer': answer,
+            'search_query': search_query,
+            'search_results': search_results,
+            'elapsed': round(elapsed, 1),
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
