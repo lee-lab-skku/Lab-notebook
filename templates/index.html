@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab Notebook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --surface: #141418;
+    --surface2: #1c1c22;
+    --border: #2a2a34;
+    --accent: #7fff6e;
+    --accent2: #4eaaff;
+    --accent3: #ff6b6b;
+    --text: #e8e8f0;
+    --text-dim: #6b6b80;
+    --text-mid: #a0a0b8;
+    --mono: 'Space Mono', monospace;
+    --sans: 'Noto Sans KR', sans-serif;
+    --radius: 8px;
+    --glow: 0 0 20px rgba(127,255,110,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Layout ── */
+  .layout { display: flex; height: 100vh; }
+
+  .sidebar {
+    width: 220px;
+    min-width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow-y: auto;
+  }
+
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* ── Sidebar ── */
+  .logo {
+    padding: 20px 16px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+  .logo-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+  .nav-section { padding: 12px 0; }
+  .nav-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    padding: 0 16px;
+    margin-bottom: 4px;
+    font-family: var(--mono);
+  }
+  .nav-btn {
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; padding: 8px 16px;
+    background: none; border: none; color: var(--text-mid);
+    font-family: var(--sans); font-size: 13px;
+    cursor: pointer; text-align: left;
+    transition: all 0.15s;
+  }
+  .nav-btn:hover { background: var(--surface2); color: var(--text); }
+  .nav-btn.active { color: var(--accent); background: rgba(127,255,110,0.06); }
+  .nav-btn .icon { font-size: 14px; width: 18px; text-align: center; }
+
+  .week-list { padding: 0 8px; }
+  .week-item {
+    padding: 6px 8px; border-radius: var(--radius);
+    cursor: pointer; font-family: var(--mono); font-size: 11px;
+    color: var(--text-dim); transition: all 0.15s;
+  }
+  .week-item:hover { background: var(--surface2); color: var(--text); }
+  .week-item.active { background: rgba(78,170,255,0.1); color: var(--accent2); }
+
+  /* ── Header ── */
+  .header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface);
+  }
+  .header-title { font-family: var(--mono); font-size: 13px; color: var(--text-dim); }
+  .header-title span { color: var(--text); }
+
+  .btn {
+    padding: 7px 16px; border-radius: var(--radius);
+    font-family: var(--sans); font-size: 13px;
+    cursor: pointer; border: none;
+    transition: all 0.15s; font-weight: 500;
+  }
+  .btn-primary { background: var(--accent); color: #0d0d0f; }
+  .btn-primary:hover { background: #9dff90; box-shadow: var(--glow); }
+  .btn-secondary {
+    background: var(--surface2); color: var(--text-mid);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: var(--border); color: var(--text); }
+  .btn-ghost { background: none; color: var(--text-dim); }
+  .btn-ghost:hover { color: var(--text); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn-danger { background: rgba(255,107,107,0.15); color: var(--accent3); border: 1px solid rgba(255,107,107,0.3); }
+  .btn-danger:hover { background: rgba(255,107,107,0.25); }
+
+  /* ── Content Areas ── */
+  .content { flex: 1; overflow-y: auto; padding: 20px 24px; }
+
+  /* ── Entry List ── */
+  .entries-grid { display: flex; flex-direction: column; gap: 12px; }
+
+  .entry-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .entry-card:hover {
+    border-color: rgba(127,255,110,0.3);
+    background: var(--surface2);
+  }
+  .entry-card.selected { border-color: var(--accent); }
+
+  .entry-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .entry-title { font-weight: 500; font-size: 14px; color: var(--text); flex: 1; }
+  .entry-date { font-family: var(--mono); font-size: 10px; color: var(--text-dim); white-space: nowrap; }
+  .entry-memo { color: var(--text-mid); font-size: 13px; margin-top: 6px; line-height: 1.5; }
+  .entry-memo.truncated {
+    overflow: hidden; display: -webkit-box;
+    -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  }
+
+  .entry-images {
+    display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap;
+  }
+  .entry-thumb {
+    width: 56px; height: 56px; border-radius: 4px;
+    object-fit: cover; border: 1px solid var(--border);
+  }
+  .entry-thumb-more {
+    width: 56px; height: 56px; border-radius: 4px;
+    background: var(--surface2); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: var(--text-dim); font-family: var(--mono);
+  }
+
+  .tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px; }
+  .tag {
+    padding: 2px 8px; border-radius: 20px; font-size: 11px;
+    background: rgba(78,170,255,0.1); color: var(--accent2);
+    border: 1px solid rgba(78,170,255,0.2); font-family: var(--mono);
+  }
+  .tag.suggested { background: rgba(127,255,110,0.08); color: var(--accent); border-color: rgba(127,255,110,0.2); }
+
+  .ai-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10px; color: var(--accent); font-family: var(--mono);
+    background: rgba(127,255,110,0.08); border: 1px solid rgba(127,255,110,0.2);
+    padding: 1px 6px; border-radius: 20px; margin-top: 6px;
+  }
+
+  /* ── New Entry Form ── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+
+  .form-group { margin-bottom: 16px; }
+  .form-label {
+    font-size: 11px; letter-spacing: 0.08em;
+    color: var(--text-dim); text-transform: uppercase;
+    font-family: var(--mono); margin-bottom: 6px; display: block;
+  }
+  .form-input, .form-textarea {
+    width: 100%; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    color: var(--text); font-family: var(--sans); font-size: 14px;
+    padding: 10px 12px; outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus, .form-textarea:focus { border-color: var(--accent); }
+  .form-textarea { resize: vertical; min-height: 120px; line-height: 1.6; }
+
+  /* ── Drop Zone ── */
+  .drop-zone {
+    border: 2px dashed var(--border); border-radius: var(--radius);
+    padding: 32px; text-align: center; cursor: pointer;
+    transition: all 0.2s; background: var(--surface2);
+  }
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: var(--accent);
+    background: rgba(127,255,110,0.04);
+  }
+  .drop-zone .dz-icon { font-size: 28px; margin-bottom: 8px; }
+  .drop-zone .dz-text { font-size: 13px; color: var(--text-dim); }
+  .drop-zone .dz-sub { font-size: 11px; color: var(--text-dim); margin-top: 4px; font-family: var(--mono); }
+
+  .image-preview-list { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .image-preview-item { position: relative; }
+  .image-preview-item img {
+    width: 80px; height: 80px; object-fit: cover;
+    border-radius: 4px; border: 1px solid var(--border);
+    cursor: zoom-in;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+  .image-preview-item img:hover {
+    transform: scale(1.18);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    z-index: 10;
+    position: relative;
+  }
+  }
+  .remove-img {
+    position: absolute; top: -6px; right: -6px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--accent3); border: none; cursor: pointer;
+    font-size: 10px; color: white; display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ── Weekly Report ── */
+  .weekly-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .weekly-title { font-family: var(--mono); font-size: 16px; }
+  .weekly-title span { color: var(--accent2); }
+
+  .progress-bar-wrap { margin-bottom: 20px; }
+  .progress-label {
+    display: flex; justify-content: space-between;
+    font-size: 11px; font-family: var(--mono); color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  .progress-bar {
+    height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent));
+    border-radius: 3px; transition: width 0.8s ease;
+  }
+
+  .weekly-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+
+  .weekly-section-title {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--text-dim); margin-bottom: 10px;
+  }
+
+  .timeline-list { display: flex; flex-direction: column; gap: 8px; }
+  .timeline-item { display: flex; gap: 12px; align-items: flex-start; }
+  .timeline-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent2); margin-top: 6px; flex-shrink: 0;
+  }
+  .timeline-date { font-family: var(--mono); font-size: 10px; color: var(--text-dim); white-space: nowrap; }
+  .timeline-text { font-size: 13px; }
+
+  .bullet-list { display: flex; flex-direction: column; gap: 6px; }
+  .bullet-item { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; }
+  .bullet-icon { color: var(--accent); flex-shrink: 0; margin-top: 1px; font-family: var(--mono); }
+  .bullet-icon.problem { color: var(--accent3); }
+  .bullet-icon.next { color: var(--accent2); }
+
+  .week-summary-text {
+    font-size: 14px; line-height: 1.7; color: var(--text-mid);
+    background: var(--surface2); border-left: 3px solid var(--accent2);
+    padding: 12px 16px; border-radius: 0 var(--radius) var(--radius) 0;
+    margin-bottom: 20px;
+  }
+
+  /* ── Detail View ── */
+  .detail-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 20px;
+  }
+  .detail-title { font-size: 18px; font-weight: 700; flex: 1; }
+  .detail-meta { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+  .detail-memo { font-size: 14px; line-height: 1.7; color: var(--text-mid); margin-bottom: 16px; }
+  .detail-images { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+  .detail-img {
+    max-height: 300px; max-width: 45%;
+    border-radius: var(--radius); border: 1px solid var(--border);
+    cursor: zoom-in;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+  .detail-img:hover {
+    transform: scale(1.04);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.5);
+  }
+
+  .ai-result {
+    background: var(--surface2);
+    border: 1px solid rgba(127,255,110,0.2);
+    border-radius: var(--radius);
+    padding: 16px; margin-top: 16px;
+  }
+  .ai-result-title {
+    font-family: var(--mono); font-size: 10px; color: var(--accent);
+    letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 12px;
+  }
+  .ai-summary { font-size: 14px; line-height: 1.7; color: var(--text-mid); }
+  .ai-next { font-size: 13px; color: var(--text-dim); margin-top: 8px; font-style: italic; }
+
+  /* ── Empty State ── */
+  .empty-state {
+    text-align: center; padding: 60px 20px; color: var(--text-dim);
+  }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-title { font-size: 15px; font-weight: 500; color: var(--text-mid); margin-bottom: 6px; }
+  .empty-sub { font-size: 13px; font-family: var(--mono); }
+
+  /* ── Loading ── */
+  .loading {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12px; color: var(--accent); font-family: var(--mono);
+  }
+  .spinner {
+    width: 14px; height: 14px; border: 2px solid rgba(127,255,110,0.2);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100; padding: 20px;
+  }
+  .modal-overlay.hidden { display: none; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px; max-width: 640px; width: 100%;
+    max-height: 90vh; overflow-y: auto;
+  }
+  .modal-title { font-family: var(--mono); font-size: 13px; color: var(--accent); margin-bottom: 20px; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+  /* ── Tabs ── */
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+  .tab-btn {
+    padding: 7px 14px; border-radius: var(--radius);
+    background: none; border: 1px solid var(--border);
+    color: var(--text-dim); font-family: var(--sans); font-size: 13px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .tab-btn.active { background: var(--surface2); color: var(--text); border-color: var(--accent); }
+
+  /* ── Toast ── */
+  .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 200; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 10px 16px;
+    font-size: 13px; color: var(--text);
+    animation: slideIn 0.2s ease;
+  }
+  .toast.success { border-color: rgba(127,255,110,0.4); color: var(--accent); }
+  .toast.error { border-color: rgba(255,107,107,0.4); color: var(--accent3); }
+  @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } }
+
+  /* ── Misc ── */
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+  .flex { display: flex; }
+  .flex-col { flex-direction: column; }
+  .gap-8 { gap: 8px; }
+  .gap-12 { gap: 12px; }
+  .hidden { display: none !important; }
+  .text-accent { color: var(--accent); }
+  .text-dim { color: var(--text-dim); }
+
+  /* ── Chat ── */
+  .chat-wrap { display: flex; flex-direction: column; height: calc(100vh - 60px); }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+  .chat-msg { display: flex; gap: 12px; max-width: 85%; }
+  .chat-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+  .chat-msg.assistant { align-self: flex-start; }
+  .chat-bubble { padding: 12px 16px; border-radius: 12px; font-size: 13px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+  .chat-msg.user .chat-bubble { background: rgba(127,255,110,0.1); border: 1px solid rgba(127,255,110,0.2); }
+  .chat-msg.assistant .chat-bubble { background: var(--surface2); border: 1px solid var(--border); }
+  .chat-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; margin-top: 2px; }
+  .chat-msg.user .chat-avatar { background: rgba(127,255,110,0.15); }
+  .chat-msg.assistant .chat-avatar { background: var(--surface2); border: 1px solid var(--border); }
+  .chat-search-refs { margin-top: 8px; font-size: 11px; color: var(--text-dim); }
+  .chat-search-refs a { color: var(--accent2); text-decoration: none; }
+  .chat-search-refs a:hover { text-decoration: underline; }
+  .chat-input-bar { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: flex-end; background: var(--surface); }
+  .chat-input-bar textarea { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); padding: 10px 14px; font-family: var(--sans); font-size: 13px; resize: none; min-height: 42px; max-height: 120px; line-height: 1.5; }
+  .chat-input-bar textarea:focus { outline: none; border-color: var(--accent); }
+  .chat-send-btn { background: var(--accent); color: #0d0d0f; border: none; border-radius: var(--radius); padding: 10px 18px; font-size: 13px; font-weight: 700; cursor: pointer; height: 42px; }
+  .chat-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .chat-search-toggle { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-dim); padding-bottom: 4px; }
+  .chat-search-toggle input { accent-color: var(--accent); cursor: pointer; }
+  .chat-thinking { color: var(--text-dim); font-size: 12px; font-style: italic; padding: 4px 0; }
+  @keyframes dots { 0%,20%{content:'.'} 40%{content:'..'} 60%,100%{content:'...'} }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3a3a48; }
+
+  /* Image lightbox */
+  .lightbox {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.92);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 300; cursor: zoom-out;
+  }
+  .lightbox.hidden { display: none; }
+  .lightbox img { max-width: 90vw; max-height: 90vh; border-radius: var(--radius); }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-title">◼ Lab Notebook</div>
+      <div class="logo-sub" id="today-label">Loading...</div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Views</div>
+      <button class="nav-btn active" data-view="all" onclick="switchView('all',this)">
+        <span class="icon">📋</span> 전체 기록
+      </button>
+      <button class="nav-btn" data-view="weekly" onclick="switchView('weekly',this)">
+        <span class="icon">📊</span> Weekly 리포트
+      </button>
+      <button class="nav-btn" data-view="new" onclick="switchView('new',this)">
+        <span class="icon">✏️</span> 새 기록
+      </button>
+      <button class="nav-btn" data-view="chat" onclick="switchView('chat',this)">
+        <span class="icon">💬</span> AI 채팅
+      </button>
+    </div>
+
+    <div class="nav-section" id="week-nav-section">
+      <div class="nav-label">주차 선택</div>
+      <div class="week-list" id="week-list"></div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="header">
+      <div class="header-title" id="header-title">
+        <span>전체 실험 기록</span>
+      </div>
+      <div id="header-actions"></div>
+    </div>
+
+    <div class="content" id="main-content">
+      <!-- dynamic content -->
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Entry Detail -->
+<div class="modal-overlay hidden" id="detail-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="detail-modal-body"></div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox hidden" id="lightbox" onclick="closeLightbox()">
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<!-- Toast -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let allEntries = [];
+let currentView = 'all';
+let selectedWeek = null;
+let pendingImages = []; // {filename, url, file}
+let uploadQueue = [];
+
+// ── Init ───────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  document.getElementById('today-label').textContent = new Date().toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric'});
+  await refreshAll();
+  switchView('all', document.querySelector('[data-view="all"]'));
+});
+
+async function refreshAll() {
+  await Promise.all([loadEntries(), loadWeeks()]);
+}
+
+async function loadEntries() {
+  const res = await fetch('/api/entries');
+  allEntries = await res.json();
+}
+
+async function loadWeeks() {
+  const res = await fetch('/api/weeks');
+  const weeks = await res.json();
+  const list = document.getElementById('week-list');
+  list.innerHTML = weeks.map(w => `
+    <div class="week-item ${w===selectedWeek?'active':''}" onclick="selectWeek('${w}')">${w}</div>
+  `).join('');
+}
+
+// ── Views ──────────────────────────────────────────────────────────────────
+function switchView(view, btn) {
+  currentView = view;
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  const headerTitle = document.getElementById('header-title');
+  const headerActions = document.getElementById('header-actions');
+
+  if (view === 'all') {
+    headerTitle.innerHTML = `<span>전체 실험 기록</span> <span style="color:var(--text-dim);font-size:11px;margin-left:8px;">${allEntries.length}개</span>`;
+    headerActions.innerHTML = `<button class="btn btn-primary" onclick="switchView('new',null)">+ 새 기록</button>`;
+    renderEntriesList(allEntries);
+  } else if (view === 'weekly') {
+    headerTitle.innerHTML = `<span>Weekly 리포트</span>`;
+    headerActions.innerHTML = selectedWeek
+      ? `<button class="btn btn-secondary" onclick="generateWeeklyReport('${selectedWeek}')"><span id="weekly-btn-label">AI 리포트 생성</span></button>`
+      : '';
+    renderWeeklyView();
+  } else if (view === 'new') {
+    headerTitle.innerHTML = `<span>새 실험 기록</span>`;
+    headerActions.innerHTML = '';
+    renderNewEntryForm();
+  } else if (view === 'chat') {
+    headerTitle.innerHTML = `<span>AI 채팅</span> <span style="color:var(--text-dim);font-size:11px;margin-left:8px;">gemma4:31b + 웹검색</span>`;
+    headerActions.innerHTML = `<button class="btn btn-ghost" onclick="clearChat()">대화 초기화</button>`;
+    renderChatView();
+  }
+}
+
+function selectWeek(week) {
+  selectedWeek = week;
+  document.querySelectorAll('.week-item').forEach(el => {
+    el.classList.toggle('active', el.textContent.trim() === week);
+  });
+  if (currentView === 'weekly') switchView('weekly', document.querySelector('[data-view="weekly"]'));
+  else switchView('weekly', document.querySelector('[data-view="weekly"]'));
+  document.querySelector('[data-view="weekly"]').classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('[data-view="weekly"]').classList.add('active');
+}
+
+// ── Entry List ─────────────────────────────────────────────────────────────
+function renderEntriesList(entries) {
+  const el = document.getElementById('main-content');
+  if (!entries.length) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🔬</div>
+        <div class="empty-title">아직 실험 기록이 없어</div>
+        <div class="empty-sub">+ 새 기록 버튼으로 첫 실험을 기록해봐</div>
+      </div>`;
+    return;
+  }
+
+  // Group by date
+  const grouped = {};
+  entries.forEach(e => {
+    const d = e.date || e.created_at?.slice(0,10);
+    if (!grouped[d]) grouped[d] = [];
+    grouped[d].push(e);
+  });
+
+  let html = '<div class="entries-grid">';
+  Object.keys(grouped).sort().reverse().forEach(date => {
+    html += `<div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:0.1em;padding:4px 0;margin-top:8px;">${formatDate(date)}</div>`;
+    grouped[date].forEach(e => { html += renderEntryCard(e); });
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function renderEntryCard(e) {
+  const imgs = e.images || [];
+  const imgHtml = imgs.length ? `
+    <div class="entry-images">
+      ${imgs.slice(0,3).map(u=>`<img class="entry-thumb" src="${u}" loading="lazy">`).join('')}
+      ${imgs.length>3?`<div class="entry-thumb-more">+${imgs.length-3}</div>`:''}
+    </div>` : '';
+
+  const tags = (e.tags||[]).map(t=>`<span class="tag">#${t}</span>`).join('');
+  const aiHtml = e.ai_summary ? `<div class="ai-badge">✦ AI 분석됨</div>` : '';
+
+  return `<div class="entry-card" onclick="openDetail('${e.id}')">
+    <div class="entry-header">
+      <div class="entry-title">${e.title || '(제목 없음)'}</div>
+      <div class="entry-date">${formatTime(e.created_at)}</div>
+    </div>
+    ${e.memo ? `<div class="entry-memo truncated">${e.memo}</div>` : ''}
+    ${imgHtml}
+    ${tags ? `<div class="tags">${tags}</div>` : ''}
+    ${aiHtml}
+  </div>`;
+}
+
+// ── New Entry Form ─────────────────────────────────────────────────────────
+function renderNewEntryForm(editEntry = null) {
+  pendingImages = [];
+  const isEdit = !!editEntry;
+  const todayVal = (editEntry?.date || new Date().toISOString().slice(0,10));
+  const timeVal = editEntry ? editEntry.created_at?.slice(11,16) : new Date().toTimeString().slice(0,5);
+
+  document.getElementById('main-content').innerHTML = `
+    <div class="panel" style="max-width:680px;">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--accent);margin-bottom:16px;">
+        ${isEdit ? '✎ 기록 수정' : '+ 새 실험 기록'}
+      </div>
+      <div class="form-group">
+        <label class="form-label">실험 제목</label>
+        <input class="form-input" id="f-title" placeholder="예: DLP 세라믹 슬러리 노출시간 테스트" value="${isEdit ? (editEntry.title||'') : ''}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">메모 / 관찰 내용</label>
+        <textarea class="form-textarea" id="f-memo" placeholder="실험 조건, 관찰 사항, 결과 등을 자유롭게 입력해...">${isEdit ? (editEntry.memo||'') : ''}</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">태그</label>
+        <input class="form-input" id="f-tags" placeholder="DLP, YBCO, exposure, 쉼표로 구분" value="${isEdit ? (editEntry.tags||[]).join(', ') : ''}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">날짜 / 시간 <span style="color:var(--text-dim);font-size:10px;">(선택 — 기본값: 현재)</span></label>
+        <div class="flex gap-8">
+          <input class="form-input" id="f-date" type="date" value="${todayVal}" style="flex:1.2;">
+          <input class="form-input" id="f-time" type="time" value="${timeVal}" style="flex:1;">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">실험 사진</label>
+        <div class="drop-zone" id="drop-zone"
+          ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)"
+          onclick="document.getElementById('file-input').click()">
+          <div class="dz-icon">📷</div>
+          <div class="dz-text">드래그 · 클릭 · Ctrl+V 붙여넣기</div>
+          <div class="dz-sub">JPG · PNG · WEBP · GIF · 캡처/PPT 복사 이미지</div>
+        </div>
+        <input type="file" id="file-input" multiple accept="image/*" class="hidden" onchange="onFileSelect(event)">
+        <div class="image-preview-list" id="preview-list">
+          ${isEdit ? (editEntry.images||[]).map((u,i)=>`
+            <div class="image-preview-item">
+              <img src="${u}" onclick="openLightbox('${u}')">
+              <button class="remove-img" onclick="removeExistingImg(${i})">×</button>
+            </div>`).join('') : ''}
+        </div>
+      </div>
+      <div class="flex gap-8" style="margin-top:8px;">
+        <button class="btn btn-primary" onclick="${isEdit ? `submitEdit('${editEntry.id}')` : 'submitEntry()'}">저장</button>
+        ${!isEdit ? `<button class="btn btn-secondary" onclick="submitEntry(true)">저장 + AI 분석</button>` : ''}
+        <button class="btn btn-ghost" onclick="switchView('all',document.querySelector('[data-view=all]'))">취소</button>
+      </div>
+    </div>`;
+
+  // 기존 이미지 URL 저장 (edit 모드)
+  window._editExistingImages = isEdit ? [...(editEntry.images||[])] : [];
+}
+
+function onDragOver(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.add('dragover');
+}
+function onDragLeave(e) {
+  document.getElementById('drop-zone').classList.remove('dragover');
+}
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('dragover');
+  handleFiles(e.dataTransfer.files);
+}
+function onFileSelect(e) { handleFiles(e.target.files); }
+
+function handleFiles(files) {
+  for (const f of files) {
+    if (!f.type.startsWith('image/')) continue;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      pendingImages.push({ file: f, dataUrl: ev.target.result, uploaded: false });
+      renderPreviews();
+    };
+    reader.readAsDataURL(f);
+  }
+}
+
+// ── Clipboard Paste (Ctrl+V) ───────────────────────────────────────────────
+// PPT, 캡처, 웹 이미지 등 클립보드 이미지를 바로 붙여넣기
+document.addEventListener('paste', e => {
+  // 새 기록 폼이 열려 있을 때만 동작
+  if (!document.getElementById('drop-zone')) return;
+
+  // textarea나 input에 포커스 있으면 텍스트 붙여넣기 → 이미지 무시
+  const tag = document.activeElement?.tagName;
+  if (tag === 'TEXTAREA' || tag === 'INPUT') return;
+
+  const items = e.clipboardData?.items;
+  if (!items) return;
+
+  let found = false;
+  for (const item of items) {
+    if (!item.type.startsWith('image/')) continue;
+    const file = item.getAsFile();
+    if (!file) continue;
+
+    // 파일명 생성 (클립보드 이미지는 이름이 없으므로 타임스탬프로)
+    const ext = item.type.split('/')[1] || 'png';
+    const namedFile = new File([file], `paste_${Date.now()}.${ext}`, { type: item.type });
+
+    const reader = new FileReader();
+    reader.onload = ev => {
+      pendingImages.push({ file: namedFile, dataUrl: ev.target.result, uploaded: false });
+      renderPreviews();
+    };
+    reader.readAsDataURL(namedFile);
+    found = true;
+  }
+
+  if (found) {
+    // 드롭존 깜빡임 피드백
+    const dz = document.getElementById('drop-zone');
+    if (dz) {
+      dz.classList.add('dragover');
+      setTimeout(() => dz.classList.remove('dragover'), 300);
+    }
+    toast('클립보드 이미지 붙여넣기 완료', 'success');
+  }
+});
+
+function renderPreviews() {
+  const list = document.getElementById('preview-list');
+  if (!list) return;
+  const existingPreviews = (window._editExistingImages||[]).map((u,i)=>`
+    <div class="image-preview-item">
+      <img src="${u}" onclick="openLightbox('${u}')">
+      <button class="remove-img" onclick="removeExistingImg(${i})">×</button>
+    </div>`).join('');
+  const newPreviews = pendingImages.map((img, i) => `
+    <div class="image-preview-item">
+      <img src="${img.dataUrl}" onclick="openLightbox('${img.dataUrl}')">
+      <button class="remove-img" onclick="removePending(${i})">×</button>
+    </div>`).join('');
+  list.innerHTML = existingPreviews + newPreviews;
+}
+
+function removePending(i) {
+  pendingImages.splice(i, 1);
+  renderPreviews();
+}
+
+async function uploadPendingImages() {
+  const urls = [];
+  for (const img of pendingImages) {
+    const fd = new FormData();
+    fd.append('file', img.file);
+    const res = await fetch('/api/upload', { method: 'POST', body: fd });
+    if (res.ok) {
+      const data = await res.json();
+      urls.push(data.url);
+    }
+  }
+  return urls;
+}
+
+async function submitEntry(withAI = false) {
+  const title = document.getElementById('f-title').value.trim();
+  const memo = document.getElementById('f-memo').value.trim();
+  const tagsRaw = document.getElementById('f-tags').value;
+  const tags = tagsRaw.split(/[,，\s]+/).map(t=>t.replace('#','')).filter(Boolean);
+  const dateVal = document.getElementById('f-date')?.value || new Date().toISOString().slice(0,10);
+  const timeVal = document.getElementById('f-time')?.value || new Date().toTimeString().slice(0,5);
+  const createdAt = `${dateVal}T${timeVal}:00`;
+
+  if (!title && !memo) { toast('제목 또는 메모를 입력해줘', 'error'); return; }
+
+  toast('저장 중...', '');
+  const imageUrls = await uploadPendingImages();
+
+  const entryData = { title, memo, tags, images: imageUrls, date: dateVal, created_at: createdAt };
+  const res = await fetch('/api/entries', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(entryData) });
+  const entry = await res.json();
+
+  if (withAI) await runAISummarize(entry);
+
+  await refreshAll();
+  toast('실험 기록 저장 완료!', 'success');
+  switchView('all', document.querySelector('[data-view="all"]'));
+  // switchView 이후 최신 데이터로 재렌더링
+  renderEntriesList(allEntries);
+}
+
+async function submitEdit(id) {
+  const title = document.getElementById('f-title').value.trim();
+  const memo = document.getElementById('f-memo').value.trim();
+  const tagsRaw = document.getElementById('f-tags').value;
+  const tags = tagsRaw.split(/[,，\s]+/).map(t=>t.replace('#','')).filter(Boolean);
+  const dateVal = document.getElementById('f-date')?.value;
+  const timeVal = document.getElementById('f-time')?.value;
+  const createdAt = dateVal && timeVal ? `${dateVal}T${timeVal}:00` : undefined;
+
+  toast('수정 중...', '');
+  const newImageUrls = await uploadPendingImages();
+  const allImages = [...(window._editExistingImages||[]), ...newImageUrls];
+
+  const updateData = { title, memo, tags, images: allImages };
+  if (dateVal) { updateData.date = dateVal; updateData.created_at = createdAt; }
+
+  await fetch(`/api/entries/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(updateData) });
+  await refreshAll();
+  toast('수정 완료!', 'success');
+  switchView('all', document.querySelector('[data-view="all"]'));
+}
+
+function removeExistingImg(idx) {
+  window._editExistingImages.splice(idx, 1);
+  // 미리보기 재렌더
+  const list = document.getElementById('preview-list');
+  const existingPreviews = (window._editExistingImages||[]).map((u,i)=>`
+    <div class="image-preview-item">
+      <img src="${u}">
+      <button class="remove-img" onclick="removeExistingImg(${i})">×</button>
+    </div>`).join('');
+  const newPreviews = pendingImages.map((img,i)=>`
+    <div class="image-preview-item">
+      <img src="${img.dataUrl}">
+      <button class="remove-img" onclick="removePending(${i})">×</button>
+    </div>`).join('');
+  list.innerHTML = existingPreviews + newPreviews;
+}
+
+// ── Entry Detail ───────────────────────────────────────────────────────────
+function openDetail(id) {
+  const entry = allEntries.find(e => e.id === id);
+  if (!entry) return;
+
+  const imgs = (entry.images||[]).map(u => `<img class="detail-img" src="${u}" onclick="openLightbox('${u}')">`).join('');
+  const tags = (entry.tags||[]).map(t=>`<span class="tag">#${t}</span>`).join('');
+
+  let aiHtml = '';
+  if (entry.ai_summary) {
+    let parsed;
+    try { parsed = typeof entry.ai_summary === 'string' ? JSON.parse(entry.ai_summary) : entry.ai_summary; } catch(e) { parsed = null; }
+    if (parsed) {
+      const findings = (parsed.key_findings||[]).map(f=>`<li style="margin-bottom:4px;">${f}</li>`).join('');
+      const sugTags = (parsed.suggested_tags||[]).map(t=>`<span class="tag suggested">#${t}</span>`).join('');
+      aiHtml = `<div class="ai-result">
+        <div class="ai-result-title">✦ AI 분석 결과</div>
+        <div class="ai-summary">${parsed.summary||''}</div>
+        ${findings ? `<ul style="margin-top:10px;padding-left:16px;color:var(--text-mid);font-size:13px;">${findings}</ul>` : ''}
+        ${parsed.next_steps ? `<div class="ai-next">→ 다음 스텝: ${parsed.next_steps}</div>` : ''}
+        ${sugTags ? `<div class="tags" style="margin-top:10px;">${sugTags}</div>` : ''}
+      </div>`;
+    } else {
+      aiHtml = `<div class="ai-result"><div class="ai-result-title">✦ AI 요약</div><div class="ai-summary">${entry.ai_summary}</div></div>`;
+    }
+  }
+
+  document.getElementById('detail-modal-body').innerHTML = `
+    <div class="detail-header">
+      <div class="detail-title">${entry.title||'(제목 없음)'}</div>
+      <div class="detail-meta">${formatTime(entry.created_at)}</div>
+    </div>
+    ${entry.memo ? `<div class="detail-memo">${entry.memo.replace(/\n/g,'<br>')}</div>` : ''}
+    ${imgs ? `<div class="detail-images">${imgs}</div>` : ''}
+    ${tags ? `<div class="tags" style="margin-bottom:12px;">${tags}</div>` : ''}
+    ${aiHtml}
+    <div class="modal-actions">
+      ${!entry.ai_summary ? `<button class="btn btn-secondary btn-sm" id="ai-btn" onclick="runAISummarizeModal('${entry.id}')">✦ AI 분석</button>` : `<button class="btn btn-secondary btn-sm" id="ai-btn" onclick="runAISummarizeModal('${entry.id}')">✦ 재분석</button><button class="btn btn-ghost btn-sm" onclick="clearAISummary('${entry.id}')">✕ 분석 삭제</button>`}
+      <button class="btn btn-secondary btn-sm" onclick="openEdit('${entry.id}')">✎ 수정</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteEntry('${entry.id}')">삭제</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">닫기</button>
+    </div>`;
+
+  document.getElementById('detail-modal').classList.remove('hidden');
+}
+
+async function clearAISummary(id) {
+  await fetch(`/api/entries/${id}`, {
+    method: 'PUT',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ ai_summary: '' })
+  });
+  await refreshAll();
+  openDetail(id);
+  toast('AI 분석 결과 삭제됨', '');
+}
+
+function closeModal() {
+  document.getElementById('detail-modal').classList.add('hidden');
+}
+
+function openEdit(id) {
+  const entry = allEntries.find(e => e.id === id);
+  if (!entry) return;
+  closeModal();
+  renderNewEntryForm(entry);
+  // nav 표시 업데이트
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('header-title').innerHTML = '<span>기록 수정</span>';
+}
+
+async function runAISummarizeModal(id) {
+  const entry = allEntries.find(e => e.id === id);
+  if (!entry) return;
+  const btn = document.getElementById('ai-btn');
+  if (btn) btn.innerHTML = `<span class="loading"><span class="spinner"></span>분석중...</span>`;
+  await runAISummarize(entry);
+  await refreshAll();
+  // 모달 닫고 카드 목록 갱신 후 다시 열기
+  closeModal();
+  renderEntriesList(allEntries);
+  openDetail(id);
+}
+
+async function runAISummarize(entry) {
+  try {
+    const res = await fetch('/api/ai/summarize', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ title: entry.title, memo: entry.memo, images: entry.images||[] })
+    });
+    const data = await res.json();
+    if (!data.error) {
+      const updateData = { ai_summary: JSON.stringify(data) };
+      // 제목 없으면 AI가 생성한 제목으로 자동 채우기
+      if (!entry.title && data.title) {
+        updateData.title = data.title;
+        entry.title = data.title;
+      }
+      // 태그 없으면 AI 추천 태그 자동 저장, 있으면 병합
+      if (data.suggested_tags && data.suggested_tags.length) {
+        const existing = entry.tags || [];
+        const merged = [...new Set([...existing, ...data.suggested_tags])];
+        updateData.tags = merged;
+        entry.tags = merged;
+      }
+      await fetch(`/api/entries/${entry.id}`, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(updateData)
+      });
+      toast('AI 분석 완료!', 'success');
+    }
+  } catch(e) { console.error(e); }
+}
+
+async function deleteEntry(id) {
+  if (!confirm('이 기록을 삭제할까?')) return;
+  await fetch(`/api/entries/${id}`, { method: 'DELETE' });
+  closeModal();
+  await refreshAll();
+  switchView('all', document.querySelector('[data-view="all"]'));
+  toast('삭제됨', '');
+}
+
+// ── Weekly Report ──────────────────────────────────────────────────────────
+function renderWeeklyView() {
+  const el = document.getElementById('main-content');
+  const headerActions = document.getElementById('header-actions');
+
+  if (!selectedWeek) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📊</div>
+        <div class="empty-title">주차를 선택해줘</div>
+        <div class="empty-sub">왼쪽 사이드바에서 주차를 선택하면 리포트를 생성할 수 있어</div>
+      </div>`;
+    return;
+  }
+
+  const weekEntries = allEntries.filter(e => e.week === selectedWeek);
+  headerActions.innerHTML = `
+    <div class="flex gap-8" style="align-items:center;">
+      <button class="btn btn-secondary btn-sm" id="weekly-gen-btn" onclick="generateWeeklyReport('${selectedWeek}', false)">✦ AI 리포트 생성</button>
+      <button class="btn btn-ghost btn-sm hidden" id="weekly-regen-btn" onclick="generateWeeklyReport('${selectedWeek}', true)" style="color:var(--text-dim);font-size:12px;">↺ 재생성</button>
+    </div>`;
+
+  if (!weekEntries.length) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🗓️</div>
+        <div class="empty-title">${selectedWeek} 기록 없음</div>
+        <div class="empty-sub">이 주차에 해당하는 실험 기록이 없어</div>
+      </div>`;
+    return;
+  }
+
+  let html = `
+    <div style="max-width:800px;">
+      <div class="weekly-header">
+        <div class="weekly-title">주간 리포트: <span>${selectedWeek}</span></div>
+        <div style="font-size:12px;color:var(--text-dim);font-family:var(--mono);">${weekEntries.length}개 기록</div>
+      </div>
+      <div style="margin-bottom:20px;">
+        <div class="entries-grid">`;
+  weekEntries.forEach(e => { html += renderEntryCard(e); });
+  html += `</div></div>
+      <div id="weekly-report-section"></div>
+    </div>`;
+  el.innerHTML = html;
+
+  // 캐시 있으면 자동 로드 (없으면 버튼 눌러야 생성)
+  _loadCachedWeekly(selectedWeek);
+}
+
+async function _loadCachedWeekly(week) {
+  try {
+    const res = await fetch(`/api/ai/weekly/cache?week=${week}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data.error && data.week_summary) {
+      renderWeeklyReport(data);
+      const genBtn = document.getElementById('weekly-gen-btn');
+      const regenBtn = document.getElementById('weekly-regen-btn');
+      if (genBtn) {
+        genBtn.innerHTML = '✦ 리포트 있음';
+        genBtn.disabled = true;
+        genBtn.style.cssText = 'background:var(--accent);color:#0d0d0f;opacity:1;cursor:default;';
+      }
+      if (regenBtn) regenBtn.classList.remove('hidden');
+    }
+  } catch(e) { }
+}
+
+async function generateWeeklyReport(week, force = false) {
+  const genBtn = document.getElementById('weekly-gen-btn');
+  const regenBtn = document.getElementById('weekly-regen-btn');
+  // 재생성 중일 때만 막기 (force면 genBtn disabled 무시)
+  if (!force && genBtn?.disabled) return;
+  if (regenBtn?.disabled) return;
+  // 둘 다 비활성화
+  [genBtn, regenBtn].forEach(b => { if (b) { b.disabled = true; b.style.opacity = '0.4'; } });
+  if (regenBtn) regenBtn.innerHTML = `<span class="loading"><span class="spinner"></span>${force ? '재생성중' : '생성중'}...</span>`;
+
+  try {
+    const res = await fetch('/api/ai/weekly', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ week, force })
+    });
+    const data = await res.json();
+    if (data.error) { toast(data.error, 'error'); return; }
+    renderWeeklyReport(data);
+    if (genBtn) {
+      genBtn.disabled = true;
+      genBtn.style.cssText = 'background:var(--accent);color:#0d0d0f;opacity:1;cursor:default;';
+      genBtn.innerHTML = '✦ 리포트 있음';
+    }
+    if (regenBtn) { regenBtn.disabled = false; regenBtn.style.opacity = '1'; regenBtn.classList.remove('hidden'); }
+    toast(force ? '리포트 재생성 완료!' : '리포트 생성 완료!', 'success');
+  } catch(e) {
+    toast('생성 실패: ' + e.message, 'error');
+    if (genBtn) { genBtn.disabled = false; genBtn.style.opacity = '1'; genBtn.innerHTML = '✦ AI 리포트 생성'; }
+    if (regenBtn) { regenBtn.disabled = false; regenBtn.style.opacity = '1'; regenBtn.classList.remove('hidden'); }
+  }
+}
+
+function cleanLatex(text) {
+  if (!text) return text;
+  return text
+    .replace(/\$\\mu\$m/g, 'μm')
+    .replace(/\$\\mu m\$/g, 'μm')
+    .replace(/\$\\mu\$/g, 'μ')
+    .replace(/\\\$mu\\\$/g, 'μ')
+    .replace(/\$\\rightarrow\$/g, '→')
+    .replace(/\$\\to\$/g, '→')
+    .replace(/\$([^$]+)\$/g, '$1')  // 나머지 $ 제거
+    .replace(/\\mu/g, 'μ');
+}
+
+function renderWeeklyReport(data) {
+  const section = document.getElementById('weekly-report-section');
+  if (!section) return;
+
+  // 타임라인: entries에서 직접 시간 매핑 (날짜별 모든 시간)
+  const weekEntries = allEntries.filter(e => e.week === selectedWeek);
+  const entryTimeMap = {};
+  weekEntries.forEach(e => {
+    const d = e.date;
+    if (!entryTimeMap[d]) entryTimeMap[d] = [];
+    const t = formatTime(e.created_at);
+    if (!entryTimeMap[d].includes(t)) entryTimeMap[d].push(t);
+  });
+
+  const timeline = (data.timeline||[]).map(t => {
+    const times = entryTimeMap[t.date];
+    const timeStr = times ? times.join(' · ') : '';
+    const isSide = t.type === 'side_quest';
+    return `
+    <div class="timeline-item">
+      <div class="timeline-dot" style="${isSide ? 'background:var(--accent2)' : ''}"></div>
+      <div>
+        <div class="timeline-date">${t.date}${timeStr ? ` <span style="color:var(--text-dim);font-size:10px;">${timeStr}</span>` : ''}${isSide ? ' <span style="font-size:9px;color:var(--accent2);font-family:var(--mono);">⚡</span>' : ''}</div>
+        <div class="timeline-text" style="${isSide ? 'color:var(--text-dim)' : ''}">${cleanLatex(t.headline)}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const results = (data.key_results||[]).map(r => `
+    <div class="bullet-item"><span class="bullet-icon">◆</span><span>${cleanLatex(r)}</span></div>`).join('');
+
+  const problems = (data.problems||[]).map(p => `
+    <div class="bullet-item"><span class="bullet-icon problem">▲</span><span>${cleanLatex(p)}</span></div>`).join('');
+
+  const nextWeek = (data.next_week||[]).map(n => `
+    <div class="bullet-item"><span class="bullet-icon next">→</span><span>${cleanLatex(n)}</span></div>`).join('');
+
+  const sideQuests = (data.side_quests||[]).map(s => `
+    <div class="bullet-item"><span class="bullet-icon" style="color:var(--accent2);">⚡</span><span>${cleanLatex(s)}</span></div>`).join('');
+
+  const sideQuestSection = sideQuests ? `
+      <div class="panel" style="border-color:rgba(78,170,255,0.2);background:rgba(78,170,255,0.03);grid-column:1/-1;">
+        <div class="weekly-section-title" style="color:var(--accent2);">⚡ Side Quest</div>
+        <div class="bullet-list">${sideQuests}</div>
+      </div>` : '';
+
+  const genTime = data.generated_at ? `<span style="font-size:10px;color:var(--text-dim);font-family:var(--mono);margin-left:8px;">${formatTime(data.generated_at)} 생성</span>` : '';
+
+  const progressHtml = (data.progress_score !== null && data.progress_score !== undefined) ? `
+    <div class="progress-bar-wrap">
+      <div class="progress-label">
+        <span>지난 주 계획 달성률</span>
+        <span>${data.progress_score}%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:${data.progress_score}%"></div>
+      </div>
+      ${data.progress_basis ? `<div style="font-size:11px;color:var(--text-dim);margin-top:4px;font-style:italic;">${data.progress_basis}</div>` : ''}
+    </div>` : '';
+
+  section.innerHTML = `
+    <div class="divider"></div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:16px;">✦ AI 주간 분석 결과${genTime}</div>
+
+    ${progressHtml}
+
+    <div class="week-summary-text">${cleanLatex(data.week_summary||'')}</div>
+
+    <div class="weekly-grid">
+      <div class="panel">
+        <div class="weekly-section-title">📅 실험 타임라인</div>
+        <div class="timeline-list">${timeline||'<span class="text-dim">없음</span>'}</div>
+      </div>
+      <div class="panel">
+        <div class="weekly-section-title">◆ 핵심 결과</div>
+        <div class="bullet-list">${results||'<span class="text-dim">없음</span>'}</div>
+      </div>
+      <div class="panel">
+        <div class="weekly-section-title">▲ 문제점</div>
+        <div class="bullet-list">${problems||'<span class="text-dim">없음</span>'}</div>
+      </div>
+      <div class="panel">
+        <div class="weekly-section-title">→ 다음 주 계획</div>
+        <div class="bullet-list">${nextWeek||'<span class="text-dim">없음</span>'}</div>
+      </div>
+      ${sideQuestSection}
+    </div>`;
+}
+
+// ── Chat ───────────────────────────────────────────────────────────────────
+let chatHistory = [];
+let chatUseSearch = true;
+
+function renderChatView() {
+  const el = document.getElementById('main-content');
+  el.innerHTML = `
+    <div class="chat-wrap">
+      <div class="chat-messages" id="chat-messages">
+        <div class="chat-msg assistant">
+          <div class="chat-avatar">🤖</div>
+          <div class="chat-bubble">안녕하세요! DLP/볼류메트릭 3D 프린팅 연구 어시스턴트입니다.<br>궁금한 것 뭐든지 물어보세요. 웹 검색도 자동으로 해드립니다.</div>
+        </div>
+      </div>
+      <div class="chat-input-bar">
+        <label class="chat-search-toggle">
+          <input type="checkbox" id="chat-search-toggle" checked onchange="chatUseSearch=this.checked">
+          웹검색
+        </label>
+        <textarea id="chat-input" placeholder="질문을 입력하세요... (Enter로 전송, Shift+Enter 줄바꿈)" rows="1"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"
+          oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
+        <button class="chat-send-btn" id="chat-send-btn" onclick="sendChat()">전송</button>
+      </div>
+    </div>`;
+
+  // 기존 히스토리 복원
+  chatHistory.forEach(h => appendChatBubble(h.role, h.content));
+}
+
+function appendChatBubble(role, content, searchRefs) {
+  const msgs = document.getElementById('chat-messages');
+  if (!msgs) return;
+  const div = document.createElement('div');
+  div.className = `chat-msg ${role}`;
+  const avatar = role === 'user' ? '👤' : '🤖';
+
+  let refsHtml = '';
+  if (searchRefs && searchRefs.length) {
+    refsHtml = `<div class="chat-search-refs">🔍 검색: ${searchRefs.slice(0,3).map(r =>
+      `<a href="${r.url}" target="_blank">${r.title?.slice(0,40) || r.url}</a>`
+    ).join(' · ')}</div>`;
+  }
+
+  div.innerHTML = `
+    <div class="chat-avatar">${avatar}</div>
+    <div>
+      <div class="chat-bubble">${content.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+      ${refsHtml}
+    </div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const btn = document.getElementById('chat-send-btn');
+  const message = input.value.trim();
+  if (!message) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  btn.disabled = true;
+
+  appendChatBubble('user', message);
+  chatHistory.push({ role: 'user', content: message });
+
+  // thinking 표시
+  const msgs = document.getElementById('chat-messages');
+  const thinking = document.createElement('div');
+  thinking.className = 'chat-thinking';
+  thinking.id = 'chat-thinking';
+  thinking.textContent = chatUseSearch ? '🔍 검색 중...' : '생각 중...';
+  msgs.appendChild(thinking);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message,
+        history: chatHistory.slice(-10),
+        use_search: chatUseSearch,
+      })
+    });
+    const data = await res.json();
+    document.getElementById('chat-thinking')?.remove();
+
+    if (data.error) {
+      appendChatBubble('assistant', '오류: ' + data.error);
+    } else {
+      appendChatBubble('assistant', data.answer, data.search_results);
+      chatHistory.push({ role: 'assistant', content: data.answer });
+
+      if (data.search_query) {
+        console.log(`[검색] "${data.search_query}" → ${data.search_results?.length}개 결과 (${data.elapsed}s)`);
+      }
+    }
+  } catch (e) {
+    document.getElementById('chat-thinking')?.remove();
+    appendChatBubble('assistant', '연결 오류: ' + e.message);
+  }
+
+  btn.disabled = false;
+  input.focus();
+}
+
+function clearChat() {
+  chatHistory = [];
+  renderChatView();
+}
+
+// ── Lightbox ───────────────────────────────────────────────────────────────
+function openLightbox(url) {
+  document.getElementById('lightbox-img').src = url;
+  document.getElementById('lightbox').classList.remove('hidden');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.add('hidden');
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function toast(msg, type = '') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('ko-KR', {year:'numeric', month:'long', day:'numeric', weekday:'short'});
+}
+
+function formatTime(isoStr) {
+  if (!isoStr) return '';
+  const d = new Date(isoStr);
+  return d.toLocaleString('ko-KR', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeModal();
+    closeLightbox();
+  }
+  if (e.key === 'n' && !['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) {
+    switchView('new', null);
+    document.querySelector('[data-view="new"]').classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('[data-view="new"]').classList.add('active');
+  }
+});
+</script>
+</body>
+</html>
