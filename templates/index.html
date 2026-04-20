@@ -267,7 +267,8 @@
     border-radius: 3px; transition: width 0.8s ease;
   }
 
-  .weekly-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .weekly-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; margin-bottom: 20px; }
+  .weekly-grid > .panel { min-width: 0; overflow-wrap: break-word; }
 
   .weekly-section-title {
     font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
@@ -1073,12 +1074,12 @@ async function generateWeeklyReport(week, force = false) {
       genBtn.style.cssText = 'background:var(--accent);color:#0d0d0f;opacity:1;cursor:default;';
       genBtn.innerHTML = '✦ 리포트 있음';
     }
-    if (regenBtn) { regenBtn.disabled = false; regenBtn.style.opacity = '1'; regenBtn.classList.remove('hidden'); }
+    if (regenBtn) { regenBtn.disabled = false; regenBtn.style.opacity = '1'; regenBtn.classList.remove('hidden'); regenBtn.innerHTML = '↺ 재생성'; }
     toast(force ? '리포트 재생성 완료!' : '리포트 생성 완료!', 'success');
   } catch(e) {
     toast('생성 실패: ' + e.message, 'error');
     if (genBtn) { genBtn.disabled = false; genBtn.style.opacity = '1'; genBtn.innerHTML = '✦ AI 리포트 생성'; }
-    if (regenBtn) { regenBtn.disabled = false; regenBtn.style.opacity = '1'; regenBtn.classList.remove('hidden'); }
+    if (regenBtn) { regenBtn.disabled = false; regenBtn.style.opacity = '1'; regenBtn.classList.remove('hidden'); regenBtn.innerHTML = '↺ 재생성'; }
   }
 }
 

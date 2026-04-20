@@ -158,7 +158,7 @@ def ai_summarize():
     # Ollama OpenAI 호환 형식: 이미지는 image_url 타입 (base64)
     content_parts = []
 
-    for img_url in images[:3]:
+    for img_url in images[:6]:
         img_path = UPLOADS_DIR / Path(img_url).name
         if img_path.exists():
             with open(img_path, 'rb') as f:
@@ -275,10 +275,18 @@ def ai_weekly():
         if prev_week in reports:
             prev_next_week = reports[prev_week].get('next_week', [])
 
-    # 프롬프트 구성
+    # 프롬프트 구성 (메모 제외, AI요약 summary 필드만 사용)
     entries_text = ''
     for e in week_entries:
-        entries_text += f"\n---\n날짜: {e['date']}\n제목: {e['title']}\n메모: {e['memo']}\nAI요약: {e.get('ai_summary','')}\n"
+        ai_raw = e.get('ai_summary', '')
+        ai_summary = ''
+        if ai_raw:
+            try:
+                ai_parsed = json.loads(ai_raw) if isinstance(ai_raw, str) else ai_raw
+                ai_summary = ai_parsed.get('summary', '')
+            except Exception:
+                ai_summary = str(ai_raw)[:200]
+        entries_text += f"\n---\n날짜: {e['date']}\n제목: {e['title']}\nAI요약: {ai_summary}\n"
 
     prev_plan_text = ''
     if prev_next_week:
@@ -288,20 +296,27 @@ def ai_weekly():
     else:
         has_prev = False
 
+    entry_count_hint = len(week_entries)
     prompt = (
-        f"주간({week}) 실험 노트들을 분석해서 JSON으로 응답해줘 (한국어).\n\n"
+        f"주간({week}) 실험 노트 {entry_count_hint}개를 분석해서 JSON으로 응답해줘 (한국어).\n\n"
         f"{entries_text}{prev_plan_text}\n\n"
         "분류 기준:\n"
         "- main_research: DLP 프린팅, YBCO, 세라믹, 슬러리, 광중합, 볼류메트릭, 소결, 경화 관련 실험\n"
         "- side_quest: 코딩, 소프트웨어 개발, 제안서 작성, 행정, 기타 비실험 작업\n\n"
+        "중요: 각 섹션에 항목을 충분히 채워줘. timeline은 위 기록 개수만큼 모두 포함, "
+        "key_results는 최소 4개 이상, problems는 최소 3개 이상 (없으면 기술적 도전/한계도 포함), "
+        "next_week는 최소 4개 이상 구체적으로 작성해줘.\n\n"
         "응답 형식 (JSON만, 백틱 없이):\n"
         "{\n"
         "  \"week_summary\": \"이번 주 전체 요약 3-4문장 (main_research 중심)\",\n"
-        "  \"timeline\": [{\"date\": \"날짜\", \"headline\": \"한줄요약\", \"type\": \"main_research 또는 side_quest\"}],\n"
-        "  \"key_results\": [\"핵심 결과1\", \"핵심 결과2\"],\n"
-        "  \"problems\": [\"문제점1\"],\n"
-        "  \"next_week\": [\"다음 주 할 것1\", \"다음 주 할 것2\"],\n"
-        "  \"side_quests\": [\"side quest 항목1\"],\n" +
+        f"  \"timeline\": [/* {entry_count_hint}개 기록 전부 포함 */\n"
+        "    {\"date\": \"YYYY-MM-DD\", \"headline\": \"한줄요약\", \"type\": \"main_research 또는 side_quest\"},\n"
+        "    {\"date\": \"YYYY-MM-DD\", \"headline\": \"한줄요약\", \"type\": \"main_research 또는 side_quest\"}\n"
+        "  ],\n"
+        "  \"key_results\": [\"핵심 결과1\", \"핵심 결과2\", \"핵심 결과3\", \"핵심 결과4\"],\n"
+        "  \"problems\": [\"문제점1\", \"문제점2\", \"문제점3\"],\n"
+        "  \"next_week\": [\"다음 주 할 것1\", \"다음 주 할 것2\", \"다음 주 할 것3\", \"다음 주 할 것4\"],\n"
+        "  \"side_quests\": [\"side quest 항목1\", \"side quest 항목2\"],\n" +
         ("  \"progress_score\": 75,\n  \"progress_basis\": \"달성률 근거 한 문장 (main_research만 기준)\",\n" if has_prev else "  \"progress_score\": null,\n") +
         "  \"has_side_quest\": true\n"
         "}"
